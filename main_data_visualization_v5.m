@@ -3,14 +3,16 @@
 
 % Задание параметров программы
 clear all; 
-level=3; % задать уровень триггера. / Data type {raw, 1st integrated, 2nd integrated}
+level=2; % задать уровень триггера. / Data type {raw, 1st integrated, 2nd integrated}
 frame_step=1;
-mode_2d = 1;
-mode_lightcurve = 0;
+mode_2d = 0;
+mode_lightcurve = 1;
 fix_color_map = 0;
 colorbar_lim = 200; %установить предел цветовой шкалы / set colorbar limit
                 % его надо бы сделать слайдером 
-only_triggered = 0;
+only_triggered = 1;
+
+n_active_pixels = 256; % needed for lightcurves.
 
 
 frame_size=2304; % задать число пикселей ФПУ / number of pixels on FS
@@ -34,7 +36,8 @@ current_frame_global = 1;
 % Подготовка данных к формированию изображения
 
 % path to directory with data files   
-%path='~/xil_proj/pdm_zynq_board/lftp/1/';
+%path='~/xil_proj/pdm_zynq_board/lftp/';
+path='~/xil_proj/pdm_zynq_board/lftp/concated/';
 %path='/mnt/d/EUSO/ISS/04_2019_11_07/Lech/';
 %path='/mnt/d/EUSO/ISS/08_2019_12_30/';
 %path='/mnt/d/EUSO/ISS/10_2020_01_14/rg4508/';
@@ -48,7 +51,7 @@ current_frame_global = 1;
 %path='/mnt/d/EUSO/Integrations/2019.05_Philippe_calib/ScanDat1/';
 %path='/mnt/d/EUSO/Integrations/2019.03/fm_bad_ECUNITS/';
 %path='/mnt/d/EUSO/Integrations/2018.11/ta/Jacek(1EC)/hv=4095_cath=3_f=5kHz/';
-path='/mnt/d/EUSO/Integrations/2020.09_Hiroko_L2_test/2/MINIEUSOUSER/DATA/';
+%path='/mnt/d/EUSO/Integrations/2020.09_Hiroko_L2_test/5/';
 
 listing = dir([path '*.dat']);
 
@@ -68,8 +71,8 @@ for filename_cntr = 1:numel(listing) % указание на номера фай
     fclose(fid); %закрыть файл / close file
     size_frame_file = size(cpu_file); % опрелелить размер прочитанных данных / get data size
     sections_D(1,:) = strfind(cpu_file',magic_A);
-    sections_D(2,:) = strfind(cpu_file',magic_B);
     sections_D3 = strfind(cpu_file',magic_C);
+    sections_D(2,:) = strfind(cpu_file',magic_B);
     sections_D(3,1:numel(sections_D3)) = sections_D3;
 
     strange_offset = 2;
@@ -97,7 +100,7 @@ for filename_cntr = 1:numel(listing) % указание на номера фай
     accumulation = 128^(level-1);
     lightcurve_sum=zeros(128);
     for i=1:frame_step:numel(sections_D(level,:))
-        if D_tt(level,i) == 0
+        if (D_tt(level,i) == 0) && (only_triggered == 1)
             continue;
         end
         fprintf('T:%d\n', i);
@@ -170,9 +173,9 @@ for filename_cntr = 1:numel(listing) % указание на номера фай
             %pdm_2d_rot_part_L2(:,current_frame+128*(filename_cntr-1))=pdm_2d_rot_part_2';
             %timehystogram(filename_cntr, current_frame) = sum(sum(pdm_2d_rot));
             if mode_lightcurve == 1
-                lightcurvesum(current_frame)=sum(pic);
+                lightcurvesum(current_frame)=sum(pic)/n_active_pixels;
                 current_frame_global = current_frame_global + 1;
-                lightcurvesum_global(current_frame_global) = sum(pic);
+                lightcurvesum_global(current_frame_global) = sum(pic)/n_active_pixels;
             end
             %plot(lightcurve','-o');
         end 

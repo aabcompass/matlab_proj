@@ -7,9 +7,9 @@ ipaddr = '192.168.7.10';
 port = 23
 
 fix_color_map = 1;
-colorbar_lim = 63;%45 %установить предел цветовой шкалы / set colorbar limit
+colorbar_lim = 0.01;%45 %установить предел цветовой шкалы / set colorbar limit
 
-do_remap = 0;
+do_remap = 1;
 
 
 %open tcp connection
@@ -17,7 +17,8 @@ t = tcpip(ipaddr, port, 'NetworkRole', 'client', 'InputBufferSize', 10000);
 fopen(t);
 % setup threshold
 %fwrite(t, 'slowctrl all dac 680');
-%[msg_reply, count] = fread(t, 5, 'char'); 
+fwrite(t, 'acq stop');
+[msg_reply, count] = fread(t, 5, 'char'); 
 
 %fwrite(t, 'acq test 2');T
 %[pdm_data, count] = fread(t, 5, 'uint32');
