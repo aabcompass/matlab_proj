@@ -7,6 +7,9 @@ level=1; % задать уровень триггера. / Data type {raw, 1st i
 frame_step=1;
 mode_2d = 1;
 mode_lightcurve = 0;
+one_pixel = 0;
+do_txt = 0;
+show_plots = 1;
 fix_color_map = 0;
 colorbar_lim = 200; %установить предел цветовой шкалы / set colorbar limit
                 % его надо бы сделать слайдером 
@@ -31,18 +34,21 @@ rotation_needed = 1;
 % Некоторые МАФЭУ (8х)по техническим причинам повернуты. 
 current_frame_global = 1;
 
-do_txt = 1;
+
 
 
 %% visualization
 % Подготовка данных к формированию изображения
 
 % path to directory with data files   
-%path='~/xil_proj/pdm_zynq_board/lftp/';
+%path='./';echo "hvps cathode all 3" | nc 192.168.7.10 23 -q 0
+%path='~/xil_proj/pdm_zynq_board/lftp/4/';
+path='~/tmp/Mini-EUSO_questions/6/1/'
 %path='~/xil_proj/pdm_zynq_board/lftp/concated/';
 %path='/mnt/d/EUSO/ISS/04_2019_11_07/Lech/';
 %path='/mnt/d/EUSO/ISS/08_2019_12_30/';
-path='/mnt/d/EUSO/ISS/10_2020_01_14/rg4508/';
+%path='/mnt/d/EUSO/ISS/10_2020_01_14/rg4508/';
+%path='/mnt/d/EUSO/ISS/11_2020_02_21/rg4860/';
 %path='/mnt/d/EUSO/ISS/12_2020_03_02/rg4919/';
 %path='/mnt/d/EUSO/ISS/14_2020_03_31/';
 %path='/mnt/d/EUSO/ISS/15_2020_04_29/5419/';
@@ -54,6 +60,8 @@ path='/mnt/d/EUSO/ISS/10_2020_01_14/rg4508/';
 %path='/mnt/d/EUSO/Integrations/2019.03/fm_bad_ECUNITS/';
 %path='/mnt/d/EUSO/Integrations/2018.11/ta/Jacek(1EC)/hv=4095_cath=3_f=5kHz/';
 %path='/mnt/d/EUSO/Integrations/2020.09_Hiroko_L2_test/5/';
+%path='~/Downloads/11/frm_cc/';
+%path='/home/alx/tmp/1/2021.01.28/';
 
 listing = dir([path '*.dat']);
 
@@ -74,7 +82,7 @@ for filename_cntr = 1:numel(listing) % указание на номера фай
     size_frame_file = size(cpu_file); % опрелелить размер прочитанных данных / get data size
     sections_D(1,:) = strfind(cpu_file',magic_A);
     sections_D3 = strfind(cpu_file',magic_C);
-    sections_D(2,:) = strfind(cpu_file',magic_B);
+    %sections_D(2,:) = strfind(cpu_file',magic_B);
     sections_D(3,1:numel(sections_D3)) = sections_D3;
 
     strange_offset = 2;
@@ -116,8 +124,13 @@ for filename_cntr = 1:numel(listing) % указание на номера фай
             frame_data_cast = frame_data;% оставить представление данных без изменения  // leave unchanged
         end
         frames = reshape(frame_data_cast, [frame_size num_of_frames]); % перегруппировать массив из одномерного в двумерный
+        
+        if(do_txt == 1)
+            fid_txt = fopen([filename '.L' int2str(level) '.' int2str(i) '.txt'],'wt');
+        end
 
         % Формирование изображения на экране
+        %for current_frame=1:1:num_of_frames % для каждого фрейма, прочитанного из файла / for each file in directory
         for current_frame=1:1:num_of_frames % для каждого фрейма, прочитанного из файла / for each file in directory
             %disp(current_frame); % вывести значение переменной на экран / print to log screen
             pic = double(frames(:, current_frame)')/accumulation;% выбрать один фрейм из блока данных, который содержит все фреймы / select just one frame
@@ -159,7 +172,7 @@ for filename_cntr = 1:numel(listing) % указание на номера фай
 
             
            
-            if mode_2d == 1
+            if (mode_2d == 1 && show_plots == 1)
                 if fix_color_map == 1 
                     imagesc(pdm_2d_rot, [0 colorbar_lim]);%вывести график на экран / plot the color image
                 else
@@ -175,18 +188,34 @@ for filename_cntr = 1:numel(listing) % указание на номера фай
             %pdm_2d_rot_part_L2(:,current_frame+128*(filename_cntr-1))=pdm_2d_rot_part_2';
             %timehystogram(filename_cntr, current_frame) = sum(sum(pdm_2d_rot));
             if mode_lightcurve == 1
-                lightcurvesum(current_frame)=sum(pic)/n_active_pixels;
-                current_frame_global = current_frame_global + 1;
-                lightcurvesum_global(current_frame_global) = sum(pic)/n_active_pixels;
+                if one_pixel == 0
+                    lightcurvesum(current_frame)=sum(pic)/n_active_pixels;
+                    current_frame_global = current_frame_global + 1;
+                    lightcurvesum_global(current_frame_global) = sum(pic)/n_active_pixels;
+                else
+                    lightcurvesum(current_frame)=(pdm_2d_rot(36,36));
+                    current_frame_global = current_frame_global + 1;
+                    lightcurvesum_global(current_frame_global) = (pdm_2d_rot(36,36));                       
+                end
             end
             %plot(lightcurve','-o');
+            if do_txt == 1
+                fprintf(fid_txt, '%d ', reshape(int16(pdm_2d_rot), [1 48*48]));
+                fprintf(fid_txt, '\n');
+            end
         end 
         fprintf('\n');
         %D_cath(level,i)'
         if mode_lightcurve == 1
-            plot(lightcurvesum)
+            %plot(lightcurvesum(60:80), '.-');
+            plot(lightcurvesum, '.-');
         end
         
+        if(do_txt == 1)
+            fclose(fid_txt);
+        end
+
+
            
         
         

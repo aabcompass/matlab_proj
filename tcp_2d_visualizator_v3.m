@@ -15,6 +15,17 @@ do_remap = 1;
 %open tcp connection
 t = tcpip(ipaddr, port, 'NetworkRole', 'client', 'InputBufferSize', 10000);
 fopen(t);
+%determine version
+'sending'
+fwrite(t, 'instrument ver');
+[msg_reply, count] = fread(t, 31); 
+'ok\n'
+if strfind(char(msg_reply'), 'v3.') ~= 0
+    protocol_ver = 3
+else
+    protocol_ver = 2
+end
+
 % setup threshold
 %fwrite(t, 'slowctrl all dac 680');
 fwrite(t, 'acq stop');

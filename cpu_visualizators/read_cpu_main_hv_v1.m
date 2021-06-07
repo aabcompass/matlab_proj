@@ -12,7 +12,8 @@ clear all;
 %path='/mnt/d/EUSO/ISS/11_2020_02_21/rg4860/';
 %path='/mnt/d/EUSO/ISS/12_2020_03_02/rg4919/';
 %path='/mnt/d/EUSO/ISS/15_2020_04_29/5419/';
-path='/mnt/d/EUSO/ISS/24/Session-24(20250820)_ISS/';
+%path='/mnt/d/EUSO/ISS/24/Session-24(20250820)_ISS/';
+path='~/tmp/Mini-EUSO_questions/5/Session-39(20210419)_ISS/'
 %path='/mnt/d/EUSO/ISS/10/rg4508/';
 listing = dir([path '*.dat']);
 records = {'TURNON', 'TURN_OFF', 'DACS_LOADED', 'SR_LOADED', 'HVPS_INTR', 'BLOCK_ECUNIT', 'BLOCK_INTR', 'UNUSED_1', 'UNUSED_2', 'UNUSED_3', 'UNUSED_4', 'HVPS_STATUS', 'OVERBRIGHT', 'SR_LOADED_HW1', 'SR_LOADED_HW2','','','','','',  '','','','','','','','','','', '','','','','','','','','','', '','','','','','','','','','', '','','','','','','','','','', '','','','','','','','','','', '','','','','','','','','','', '','','','','','','','','','', '','','','','','','','','','','NEW_FILE'};
